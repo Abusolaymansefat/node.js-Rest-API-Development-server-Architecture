@@ -13,4 +13,10 @@ export const productData = () => {
       // console.log(products);
       // console.log(JSON.parse(products));
       return JSON.parse(products);
+};
+
+
+export const insertProduct = (payload: any) =>{
+      console.log(JSON.stringify(payload));
+      fs.writeFileSync(filePath,JSON.stringify(payload));
 }

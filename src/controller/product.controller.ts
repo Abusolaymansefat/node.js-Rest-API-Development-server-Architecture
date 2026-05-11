@@ -1,11 +1,11 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
-import { productData } from "../service/product.service";
+import { insertProduct, productData } from "../service/product.service";
 import type { Iproducrt } from "../types/product.type";
 import { parseBody } from "../utility/parseBody";
 
 export const productController = async (req: IncomingMessage, res: ServerResponse) => {
 
-      console.log("Request received at product controller", req);
+      // console.log("Request received at product controller", req);
       const url = req.url;
       const method = req.method;
 
@@ -32,15 +32,48 @@ export const productController = async (req: IncomingMessage, res: ServerRespons
                         data: product
                   }))
 
-      }else if (method === "post" && url === "/products"){
+      }else if (method === "POST" && url === "/products"){
 
             const body = await parseBody(req);
-            console.log(body);
+            // console.log("Body", body);
+            const products = productData();
+            const newProduct = {
+                  id: Date.now(),
+                  ...body,
+            };
+            // console.log("New product", newProduct);
+            products.push(newProduct);
+            // console.log(products);
+
+
+            insertProduct(products);
+
             res.writeHead(200, {"content-type" : "application/json"});
             res.end(JSON.stringify({message: "Product created successfully.",
-                  // data: product
+                  data: products
             }))
       }
-};
 
-// explor e more about url parsing and query params in node js without express. 
+      else if (method === "PUT" && id !== null){
+            const body = await parseBody(req);
+            const products = productData();
+            const productIndex = products.findIndex((p: Iproducrt) => p.id === id);
+            // console.log(productIndex);
+            if(productIndex < 0){
+                  res.writeHead(404, {"content-type" : "application/json"});
+                   res.end(JSON.stringify({message: "Product Not Found.",
+                  data: null,
+            }))
+      }
+      // console.log(products[productIndex]);
+      products[productIndex] = {
+            id: products[productIndex].id,
+            ...body
+      }
+      insertProduct(products);
+      res.writeHead(200, {"content-type" : "application/json"});
+                   res.end(JSON.stringify({message: "Product updated successfully.",
+                  data: products[productIndex],
+            }))
+}
+}
